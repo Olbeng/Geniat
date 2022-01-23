@@ -1,4 +1,7 @@
 <?php
+
+use \Firebase\JWT\JWT;
+
 class UserController extends DataBase
 {
     public function index()
@@ -12,8 +15,12 @@ class UserController extends DataBase
             header("HTTP/1.1 500 OK");
         }
 
-        $data = array("view" => "list_user", "token" => $_SESSION['token'], "res" => $res);
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "list_user", "token" => $_SESSION['token'], "res" => $res);
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "message" => "Acceso pagina de inicio"));
+        }
     }
     public function show($id)
     {
@@ -36,46 +43,66 @@ class UserController extends DataBase
             header("HTTP/1.1 500 OK");
         }
 
-
-        $data = array("view" => $view, "token" => $_SESSION['token'], "res" => $res);
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => $view, "token" => $_SESSION['token'], "res" => $res);
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "result" => $res));
+        }
     }
     public function Error404()
     {
-        $data = array("view" => "404", "token" => $_SESSION['token']);
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "404", "token" => $_SESSION['token']);
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "404", "error" => "api no existe"));
+        }
     }
     public function Login()
     {
-        $data = array("view" => "login", "token" => '');
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "login", "token" => '');
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "message" => "Login"));
+        }
     }
     public function registro()
     {
-        $data = array("view" => "register", "token" => isset($_SESSION['token']) ? $_SESSION['token'] : "");
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "register", "token" => isset($_SESSION['token']) ? $_SESSION['token'] : "");
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "message" => "Registro"));
+        }
     }
     public function ingreso_data($Request)
     {
         try {
             $input = $Request;
             if ($input['Correo'] == "" || $input['Password'] == "") {
-                echo json_encode(array("status" => "400", "message" => "Algun valor esta vacio, o el parametro no es valido"));
+                echo json_encode(array("status" => "400", "message" => "Algún valor está vacío, o el parámetro no es válido"));
                 exit();
             }
             if ($this->is_valid_email($input['Correo']) != "1") {
-                echo json_encode(array("status" => "400", "message" => "El correo no es valido"));
+                echo json_encode(array("status" => "400", "message" => "El correo no es válido"));
                 exit();
             }
             $data_user = $this->valid_user($input);
             if ($data_user) {
                 $encryp = crypt($input['Password'], '$2a$07$asxx54ahjppf45sd87a5a4dDDGsystemdev$');
                 if ($encryp == $data_user['password'] && $input['Correo'] == $data_user['correo']) {
-                    $_SESSION['token'] = '1';
+                    $name_user = $data_user['nombre'] . " " . $data_user['apellido'];
+                    $token = $this->token($data_user['id'], $data_user['rol'],  $name_user);
                     $_SESSION['user_id'] = $data_user['id'];
                     $_SESSION['user_rol'] = $data_user['rol'];
-                    $_SESSION['user_name'] = $data_user['nombre']." ".$data_user['apellido'];
-                    echo json_encode(array("status" => "200", "message" => "acceso autorizado"));
+                    $_SESSION['user_name'] = $name_user;
+                    if (isset($input['login']) && $input['login'] == "system") {
+                        $_SESSION['system'] = "system";
+                    }
+                    $_SESSION['token'] = $token;
+                    echo json_encode(array("status" => "200", "jwt" => $token, "message" => "acceso autorizado"));
                     exit();
                 } else {
                     echo json_encode(array("status" => "400", "message" => "acceso denegado"));
@@ -87,6 +114,8 @@ class UserController extends DataBase
             }
         } catch (PDOExecption $e) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
+            exit();
         }
     }
     public function registro_data($Request)
@@ -94,11 +123,17 @@ class UserController extends DataBase
         try {
             $input = $Request;
             if ($input['Nombre'] == "" || $input['Apellido'] == "" || $input['Correo'] == "" || $input['Password'] == "" || $input['Rol'] == "") {
-                echo json_encode(array("status" => "400", "message" => "Algun valor esta vacio, o el parametro no es valido"));
+                echo json_encode(array("status" => "400", "message" => "Algún valor está vacío, o el parámetro no es válido"));
                 exit();
             }
             if ($this->is_valid_email($input['Correo']) != "1") {
-                echo json_encode(array("status" => "400", "message" => "El correo no es valido"));
+                echo json_encode(array("status" => "400", "message" => "El correo no es válido"));
+                exit();
+            }
+            if ($input['Rol'] == "Rol básico" || $input['Rol'] == "Rol medio" || $input['Rol'] == "Rol medio alto" || $input['Rol'] == "Rol alto medio" || $input['Rol'] == "Rol alto") {
+                $rol = $input['Rol'];
+            }else{
+                echo json_encode(array("status" => "400", "message" => "El valor del rol no es válido"));
                 exit();
             }
             if (!$this->exist($input, '')) {
@@ -109,20 +144,21 @@ class UserController extends DataBase
                 $statement->bindParam(':apellido', $input['Apellido'], PDO::PARAM_STR);
                 $statement->bindParam(':correo', $input['Correo'], PDO::PARAM_STR);
                 $statement->bindParam(':password', $encryp, PDO::PARAM_STR);
-                $statement->bindParam(':rol', $input['Rol'], PDO::PARAM_STR);
+                $statement->bindParam(':rol', $rol, PDO::PARAM_STR);
                 $statement->execute();
                 $user_id = $this->lastInsertId();
                 if ($user_id) {
                     header("HTTP/1.1 201 OK");
+                    echo json_encode(array("status" => "201", "message" => "Usuario dado de alta de manera correcta"));
                 }
             } else {
-                echo json_encode(array("status" => "400", "message" => "El correo ya esta dado de alta"));
+                echo json_encode(array("status" => "400", "message" => "El correo ya está dado de alta"));
                 exit();
             }
         } catch (PDOExecption $e) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
         }
-        echo json_encode(array("status" => "201", "message" => "Usuario dado de alta de manera correcta"));
     }
     public function valid_user($input)
     {
@@ -139,11 +175,11 @@ class UserController extends DataBase
     }
     public function exist($input, $id)
     {
-        if($id==""){
+        if ($id == "") {
             $sql = "SELECT * FROM usuarios WHERE deleted = 0 and correo = :correo";
             $statement = $this->prepare($sql);
             $statement->bindParam(':correo', $input['Correo'], PDO::PARAM_STR);
-        }else{            
+        } else {
             $sql = "SELECT * FROM usuarios WHERE deleted = 0 and correo = :correo and id != :id ";
             $statement = $this->prepare($sql);
             $statement->bindParam(':correo', $input['Correo'], PDO::PARAM_STR);
@@ -163,25 +199,37 @@ class UserController extends DataBase
     }
     public function logout($Request)
     {
-        session_destroy();
-        header('Location:'.ROUTE_SYSTEM);
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            session_destroy();
+            header('Location:' . ROUTE_SYSTEM);
+        } else {
+            session_destroy();
+            echo json_encode(array("status" => "200", "message" => "sesión terminada"));
+        }
     }
     public function edit_user($Request, $id)
     {
         try {
             $input = $Request;
             if ($input['Nombre'] == "" || $input['Apellido'] == "" || $input['Correo'] == "" || $input['Password'] == "" || $input['Rol'] == "") {
-                echo json_encode(array("status" => "400", "message" => "Algun valor esta vacio, o el parametro no es valido"));
+                echo json_encode(array("status" => "400", "message" => "Algún valor está vacío, o el parámetro no es válido"));
                 exit();
             }
-            
+
             if ($this->is_valid_email($input['Correo']) != "1") {
-                echo json_encode(array("status" => "400", "message" => "El correo no es valido"));
+                echo json_encode(array("status" => "400", "message" => "El correo no es válido"));
+                exit();
+            }
+
+            if ($input['Rol'] == "Rol básico" || $input['Rol'] == "Rol medio" || $input['Rol'] == "Rol medio alto" || $input['Rol'] == "Rol alto medio" || $input['Rol'] == "Rol alto") {
+                $rol = $input['Rol'];
+            }else{
+                echo json_encode(array("status" => "400", "message" => "El valor del rol no es válido"));
                 exit();
             }
             
             if (!$this->exist($input, $id)) {
-                
+
                 $encryp = crypt($input['Password'], '$2a$07$asxx54ahjppf45sd87a5a4dDDGsystemdev$');
                 $sql = "UPDATE usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, password = :password, rol = :rol WHERE deleted = 0 and id = :id";
                 $statement = $this->prepare($sql);
@@ -192,30 +240,51 @@ class UserController extends DataBase
                 $statement->bindParam(':password', $encryp, PDO::PARAM_STR);
                 $statement->bindParam(':rol', $input['Rol'], PDO::PARAM_STR);
                 $statement->execute();
-
-                
                 header("HTTP/1.1 200 OK");
+                echo json_encode(array("status" => "200", "message" => "Usuario actualizado de manera correcta"));
             } else {
-                echo json_encode(array("status" => "400", "message" => "El correo ya esta dado de alta"));
+                echo json_encode(array("status" => "400", "message" => "El correo ya está dado de alta"));
                 exit();
             }
         } catch (PDOExecption $e) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
         }
-        
-        echo json_encode(array("status" => "200", "message" => "Usuario actualizado de manera correcta"));
     }
     public function delete_user($id)
     {
         try {
-            $sql = "UPDATE usuarios SET deleted = 1 WHERE deleted = 0 and id = :id";
-            $statement = $this->prepare($sql);
-            $statement->bindParam(':id', $id, PDO::PARAM_STR);
-            $statement->execute();
-            header("HTTP/1.1 200 OK");
-            echo json_encode(array("status" => "200", "message" => "Usuario eliminado de manera correcta"));
+            if ($id != "") {
+                $sql = "UPDATE usuarios SET deleted = 1 WHERE deleted = 0 and id = :id";
+                $statement = $this->prepare($sql);
+                $statement->bindParam(':id', $id, PDO::PARAM_STR);
+                $statement->execute();
+                header("HTTP/1.1 200 OK");
+                echo json_encode(array("status" => "200", "message" => "Usuario eliminado de manera correcta"));
+            } else {
+                header("HTTP/1.1 404 OK");
+                echo json_encode(array("status" => "404", "message" => "No existe el usuario a eliminar"));
+            }
         } catch (\Throwable $th) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
         }
+    }
+    public function token($id, $rol, $name_user)
+    {
+        $secret_key = SECRET_KEY;
+        $issuedat_claim = time(); // issued at
+        $token = array(
+            "iat" => $issuedat_claim,
+            "exp" => $issuedat_claim + (60 * 60), // Tiempo que expirará el token (+1 hora)
+            "data" => array(
+                "id" => $id,
+                "rol" => $rol,
+                "name_user" => $name_user
+            )
+        );
+
+        $jwt = JWT::encode($token, $secret_key);
+        return $jwt;
     }
 }

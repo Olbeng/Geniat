@@ -10,10 +10,15 @@ class PublicationController extends DataBase
             $res = $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOExecption $e) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
+            exit();
         }
-
-        $data = array("view" => "list_publication", "token" => $_SESSION['token'], "res" => $res);
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "list_publication", "token" => $_SESSION['token'], "res" => $res);
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "result" => $res));
+        }
     }
     public function show($id)
     {
@@ -34,23 +39,34 @@ class PublicationController extends DataBase
                 $view = 'list_publication';
             }
         } catch (PDOExecption $e) {
-
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
+            exit();
         }
-
-
-        $data = array("view" => $view, "token" => $_SESSION['token'], "res" => $res);
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => $view, "token" => $_SESSION['token'], "res" => $res);
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "result" => $res));
+        }
     }
     public function Error404()
     {
-        $data = array("view" => "404", "token" => $_SESSION['token']);
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "404", "token" => $_SESSION['token']);
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "message" => "La api no existe"));
+        }
     }
     public function registro()
     {
-        $data = array("view" => "edit_publication", "token" => isset($_SESSION['token']) ? $_SESSION['token'] : "", "res" => "");
-        include VIEW_ROUTE . 'template.php';
+        if (isset($_SESSION['system']) && $_SESSION['system'] == "system" || !isset($_SESSION['token']) && $_SESSION['token'] == "") {
+            $data = array("view" => "edit_publication", "token" => isset($_SESSION['token']) ? $_SESSION['token'] : "", "res" => "");
+            include VIEW_ROUTE . 'template.php';
+        } else {
+            echo json_encode(array("status" => "200", "message" => "Registro de Publicación"));
+        }
     }
     public function registro_data($Request)
     {
@@ -66,13 +82,12 @@ class PublicationController extends DataBase
             $statement->bindParam(':descripcion', $input['Descripcion'], PDO::PARAM_STR);
             $statement->bindParam(':usuario_id', $_SESSION['user_id'], PDO::PARAM_STR);
             $statement->execute();
-            
             header("HTTP/1.1 201 OK");
+            echo json_encode(array("status" => "201", "message" => "Publicación creada de alta de manera correcta"));
         } catch (PDOExecption $e) {
             header("HTTP/1.1 500 OK");
-            echo $e->getMessage();
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
         }
-        echo json_encode(array("status" => "201", "message" => "Publicación creada de alta de manera correcta"));
     }
     public function edit_publication($Request, $id)
     {
@@ -89,23 +104,29 @@ class PublicationController extends DataBase
             $statement->bindParam(':descripcion', $input['Descripcion'], PDO::PARAM_STR);
             $statement->execute();
             header("HTTP/1.1 200 OK");
+            echo json_encode(array("status" => "200", "message" => "Publicación actualizada de manera correcta"));
         } catch (PDOExecption $e) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
         }
-
-        echo json_encode(array("status" => "200", "message" => "Publicación actualizada de manera correcta"));
     }
     public function delete_publication($id)
     {
         try {
-            $sql = "UPDATE publicaciones SET deleted = 1 WHERE publicaciones.deleted = 0 and id = :id";
-            $statement = $this->prepare($sql);
-            $statement->bindParam(':id', $id, PDO::PARAM_STR);
-            $statement->execute();
-            header("HTTP/1.1 200 OK");
-            echo json_encode(array("status" => "200", "message" => "Usuario eliminado de manera correcta"));
+            if($id!=""){
+                $sql = "UPDATE publicaciones SET deleted = 1 WHERE publicaciones.deleted = 0 and id = :id";
+                $statement = $this->prepare($sql);
+                $statement->bindParam(':id', $id, PDO::PARAM_STR);
+                $statement->execute();
+                header("HTTP/1.1 200 OK");
+                echo json_encode(array("status" => "200", "message" => "publicación eliminada de manera correcta"));
+            }else{
+                header("HTTP/1.1 404 OK");
+                echo json_encode(array("status" => "404", "message" => "No existe la publicación a eliminar"));
+            }
         } catch (\Throwable $th) {
             header("HTTP/1.1 500 OK");
+            echo json_encode(array("status" => "500", "message" => "Error en el servidor"));
         }
     }
 }
