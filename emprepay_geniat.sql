@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 23, 2022 at 04:22 PM
+-- Generation Time: Jan 23, 2022 at 04:36 PM
 -- Server version: 5.7.23-23
 -- PHP Version: 7.3.32
 
@@ -25,39 +25,47 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `publicaciones`
+--
+
+CREATE TABLE IF NOT EXISTS `publicaciones` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
+  `descripcion` text COLLATE utf8_unicode_ci NOT NULL,
+  `deleted` int(11) NOT NULL DEFAULT '0',
+  `usuario_id` int(11) NOT NULL,
+  `date_entered` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `usuarios`
 --
 
-CREATE TABLE `usuarios` (
-  `id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `usuarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `correo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `apellido` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `password` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `rol` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `deleted` int(11) NOT NULL DEFAULT '0',
-  `date_entered` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `date_entered` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Indexes for dumped tables
+-- Constraints for dumped tables
 --
 
 --
--- Indexes for table `usuarios`
+-- Constraints for table `publicaciones`
 --
-ALTER TABLE `usuarios`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `usuarios`
---
-ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `publicaciones`
+  ADD CONSTRAINT `publicaciones_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
