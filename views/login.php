@@ -19,6 +19,7 @@
                                     <div class="form-group">
                                         <input class="form-control form-control-user" id="Password" type="password" name="Password" required autocomplete="current-password">
                                     </div>
+                                    <input type='hidden' id = 'login' name = 'login' value = 'system'>
                                     <input type="submit" class="btn btn-primary btn-user btn-block" value="Login">
                                 </form>
                                 <hr>
