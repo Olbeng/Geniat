@@ -16,32 +16,33 @@
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
     <!-- Custom styles for this template-->
-    <link href="<?= ROUTE_SYSTEM ?>public/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="<?= ROUTE_SYSTEM ?>public/css/sb-admin-2.css" rel="stylesheet">
 
 </head>
 
 <body id="page-top">
-
+    
+    <input type="hidden" id="route" value="<?= ROUTE_SYSTEM ?>">
     <!-- Page Wrapper -->
     <div id="wrapper">
 
-        <?php include VIEW_ROUTE . 'side_menu.php'; ?>
+        <?php isset($data['token']) && $data['token'] != "" ? include VIEW_ROUTE . 'side_menu.php' : ''; ?>
 
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
             <!-- Main Content -->
             <div id="content">
-                <?php include VIEW_ROUTE . 'top_menu.php'; ?>
+                <?php isset($data['token']) && $data['token'] != "" ? include VIEW_ROUTE . 'top_menu.php' : ''; ?>
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-                    <?php include isset($view) ? VIEW_ROUTE . $view . '.php' : VIEW_ROUTE .'list_user.php'; ?>
+                    <?php include isset($data['view']) ? VIEW_ROUTE . $data['view'] . '.php' : VIEW_ROUTE . 'list_user.php'; ?>
 
                 </div>
                 <!-- /.container-fluid -->
 
             </div>
             <!-- End of Main Content -->
-            <?php include VIEW_ROUTE . 'footer.php'; ?>
+            <?php isset($data['token']) && $data['token'] != "" ? include VIEW_ROUTE . 'footer.php' : ''; ?>
 
         </div>
         <!-- End of Content Wrapper -->
@@ -67,7 +68,7 @@
                 <div class="modal-body">Seleccione "Cerrar sesión" a continuación si está listo para finalizar su sesión actual.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
-                    <a class="btn btn-primary" href="logout">Cerrar Sesión</a>
+                    <a class="btn btn-primary" href="<?= ROUTE_SYSTEM ?>users/logout">Cerrar Sesión</a>
                 </div>
             </div>
         </div>
@@ -76,19 +77,18 @@
     <!-- Bootstrap core JavaScript-->
     <script src="<?= ROUTE_SYSTEM ?>public/vendor/jquery/jquery.min.js"></script>
     <script src="<?= ROUTE_SYSTEM ?>public/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
     <!-- Core plugin JavaScript-->
     <script src="<?= ROUTE_SYSTEM ?>public/vendor/jquery-easing/jquery.easing.min.js"></script>
-
     <!-- Custom scripts for all pages-->
+    <script src="<?= ROUTE_SYSTEM ?>public/js/bootstrap-notify.min.js"></script>
+    <!-- jQuery Validate Form -->
+    <script src="<?= ROUTE_SYSTEM ?>public/js/jquery.validate.min.js"></script>
+    <!-- jQuery Form -->
+    <script src="<?= ROUTE_SYSTEM ?>public/js/jquery.form.js"></script>
     <script src="<?= ROUTE_SYSTEM ?>public/js/sb-admin-2.min.js"></script>
+    <script src="<?= ROUTE_SYSTEM ?>public/js/user.js"></script>
+    <script src="<?= ROUTE_SYSTEM ?>public/js/publication.js"></script>
 
-    <!-- Page level plugins -->
-    <script src="<?= ROUTE_SYSTEM ?>public/vendor/chart.js/Chart.min.js"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="<?= ROUTE_SYSTEM ?>public/js/demo/chart-area-demo.js"></script>
-    <script src="<?= ROUTE_SYSTEM ?>public/js/demo/chart-pie-demo.js"></script>
 
 </body>
 

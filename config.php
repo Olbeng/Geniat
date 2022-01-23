@@ -1,8 +1,10 @@
-<?php 
-define("APP_NAME", "GENIAT");
+<?php
+session_start(); 
 define("DB_HOST", "162.241.61.203");
 define("DB_USERNAME", "emprepay_geniat");
 define("DB_PASSWORD", "0S4nd_pIq[ms");
+
+define("APP_NAME", "GENIAT");
 define("DB_DATABASE_NAME", "emprepay_geniat");
 define("VIEW_ROUTE", BASE_ROUTE."views/");
 define("ROUTE",BASE_ROUTE."routes/");

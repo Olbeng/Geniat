@@ -1,6 +1,8 @@
-<?php 
+<?php
 $route_web = new Routes();
-$route_web->controllers(array(
+$controller_data = array(
     "/" => "BaseController",
-    "users" => "UserController"
-));
+    "users" => "UserController",
+    "publications" => "PublicationController",
+);
+$route_web->controllers($controller_data);
