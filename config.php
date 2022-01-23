@@ -7,7 +7,7 @@ define("DB_DATABASE_NAME", "emprepay_geniat");
 define("VIEW_ROUTE", BASE_ROUTE."views/");
 define("ROUTE",BASE_ROUTE."routes/");
 $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,strpos( $_SERVER["SERVER_PROTOCOL"],'/'))).'://';
-define("ROUTE_SYSTEM",$protocol.$_SERVER['HTTP_HOST']."/Geniat/");
+define("ROUTE_SYSTEM",$protocol.$_SERVER['HTTP_HOST']."/");
 
 include ROUTE."route.php";
 include ROUTE."web.php";
