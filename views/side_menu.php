@@ -18,12 +18,21 @@
             <i class="fas fa-fw fa-home"></i>
             <span>Inicio</span></a>
     </li>
-    <!-- Nav Item - Tables -->
-    <li class="nav-item">
-        <a class="nav-link" href="publications">
-            <i class="fas fa-envelope fa-fw text-gray-400"></i>
-            <span>Publicaciones</span></a>
-    </li>
+    <?php if ($_SESSION['user_rol'] != "Rol básico") { ?>
+        <!-- Nav Item - Tables -->
+        <li class="nav-item">
+            <a class="nav-link" href="<?= ROUTE_SYSTEM ?>users">
+                <i class="fas fa-users fa-fw text-gray-400"></i>
+                <span>Usuarios</span></a>
+        </li>
+
+        <!-- Nav Item - Tables -->
+        <li class="nav-item">
+            <a class="nav-link" href="<?= ROUTE_SYSTEM ?>publications">
+                <i class="fas fa-envelope fa-fw text-gray-400"></i>
+                <span>Publicaciones</span></a>
+        </li>
+    <?php } ?>
     <!-- Nav Item - Tables -->
     <li class="nav-item">
         <a class="nav-link" href="#" data-toggle="modal" data-target="#logoutModal">
