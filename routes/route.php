@@ -88,19 +88,19 @@ class Routes
             $controller = "BaseController";
             $method = "index";
         }
-        // session_destroy();
-        if (isset($_SESSION['token']) && $_SESSION['token'] != "") {
-            $BearerToken = $this->getBearerToken();
-            $BearerToken = isset($_SESSION['system']) && $_SESSION['system'] == "system" ? $_SESSION['token'] : $BearerToken;
-            
-            $token_data = $this->verification($BearerToken);
-            if ($token_data['status'] == "401") {
-                echo json_encode(array("error" => "Token No valido"));//$token_data['message']
-                session_destroy();
-                exit();
+        
+        if ($method != "logout") {
+            if (isset($_SESSION['token']) && $_SESSION['token'] != "") {
+                $BearerToken = $this->getBearerToken();
+                $BearerToken = isset($_SESSION['system']) && $_SESSION['system'] == "system" ? $_SESSION['token'] : $BearerToken;
+
+                $token_data = $this->verification($BearerToken);
+                if ($token_data['status'] == "401") {
+                    echo json_encode(array("error" => $token_data['message'])); //$token_data['message']
+                    exit();
+                }
             }
         }
-
         $this->getController($controller, $method, $params);
     }
     public function getController($controller, $method, $params)

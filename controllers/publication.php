@@ -119,10 +119,10 @@ class PublicationController extends DataBase
                 $statement->bindParam(':id', $id, PDO::PARAM_STR);
                 $statement->execute();
                 header("HTTP/1.1 200 OK");
-                echo json_encode(array("status" => "200", "message" => "publicacion eliminada de manera correcta"));
+                echo json_encode(array("status" => "200", "message" => "publicación eliminada de manera correcta"));
             }else{
                 header("HTTP/1.1 404 OK");
-                echo json_encode(array("status" => "404", "message" => "No existe la publicacion a eliminar"));
+                echo json_encode(array("status" => "404", "message" => "No existe la publicación a eliminar"));
             }
         } catch (\Throwable $th) {
             header("HTTP/1.1 500 OK");
